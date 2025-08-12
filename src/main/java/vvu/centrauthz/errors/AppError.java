@@ -1,5 +1,6 @@
 package vvu.centrauthz.errors;
 
+import java.io.Serial;
 import lombok.Getter;
 import vvu.centrauthz.models.Error;
 
@@ -8,7 +9,9 @@ import vvu.centrauthz.models.Error;
  */
 @Getter
 public class AppError extends RuntimeException {
-    private final Error error;
+    @Serial
+    private static final long serialVersionUID = 1L;
+    private final transient Error error;
 
     /**
      * Constructor with Error.

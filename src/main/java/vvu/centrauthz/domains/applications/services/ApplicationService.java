@@ -124,7 +124,7 @@ public class ApplicationService {
                        Application application,
                        Boolean force,
                        Context context) {
-        lockKey(applicationKey, (e) -> {
+        lockKey(applicationKey, e -> {
             mapper.updateEntity(application, e);
             e.setUpdatedBy(context.user().userId());
             e.setUpdatedAt(Instant.ofEpochMilli(System.currentTimeMillis()));
@@ -151,7 +151,7 @@ public class ApplicationService {
      */
     @Transactional
     public void patch(String applicationKey, Patcher<ApplicationPatcher> patcher, Context context) {
-        lockKey(applicationKey, (e) -> {
+        lockKey(applicationKey, e -> {
             e.setUpdatedBy(context.user().userId());
             patcher
                     .having("name", d -> e.setName(d.name()))

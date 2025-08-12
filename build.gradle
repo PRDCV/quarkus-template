@@ -17,6 +17,8 @@ sonar {
     property "sonar.projectKey", "hoangviet1vu_quarkus-template"
     property "sonar.organization", "prdcv-vu-hoang-viet"
     property "sonar.host.url", "https://sonarcloud.io"
+    property "sonar.exclusions", "**/src/test/**"
+    property "sonar.test.exclusions", "**/src/test/**"
   }
 }
 
