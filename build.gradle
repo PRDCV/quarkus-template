@@ -3,11 +3,20 @@ plugins {
     id 'io.quarkus'
     id 'io.freefair.lombok' version '8.6'
     id 'checkstyle'
+    id "org.sonarqube" version "6.2.0.5505"
 }
 
 repositories {
     mavenCentral()
     mavenLocal()
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "hoangviet1vu_quarkus-template"
+    property "sonar.organization", "prdcv-vu-hoang-viet"
+    property "sonar.host.url", "https://sonarcloud.io"
+  }
 }
 
 // Checkstyle configuration
