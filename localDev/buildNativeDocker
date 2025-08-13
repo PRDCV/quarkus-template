@@ -1,0 +1,7 @@
+#!/bin/sh
+
+./gradlew buildNative \
+  -Dquarkus.native.container-build=true \
+  -Dquarkus.container-image.build=true
+
+docker run -t .
