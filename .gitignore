@@ -40,3 +40,7 @@ nb-configuration.xml
 # TLS Certificates
 .certs/
 .build/
+
+# flyway (local testing)
+/flyway/conf
+/flyway/postgres_data

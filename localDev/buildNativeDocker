@@ -1,7 +1,9 @@
 #!/bin/sh
-
+# On Window, use Git bash from the project folder to run this with:
+# sh localDev/buildNativeDocker
 ./gradlew buildNative \
   -Dquarkus.native.container-build=true \
   -Dquarkus.container-image.build=true
 
-docker run -t .
+docker build -f localDev/Dockerfile -t quarkus-native .
+docker run -d -e DB_URL=host.docker.internal:5432 quarkus-native
