@@ -40,3 +40,9 @@ nb-configuration.xml
 # TLS Certificates
 .certs/
 .build/
+
+# Local development only
+/flyway/docker-compose.yml
+/flyway/conf
+/flyway/postgres_data
+/localDev
