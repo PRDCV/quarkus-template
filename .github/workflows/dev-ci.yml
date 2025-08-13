@@ -16,7 +16,7 @@ env:
 jobs:
   builddocker:
     runs-on: ubuntu-latest
-    environment: CI
+    environment: develop  # Add this line to specify the environment
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
       shortsha: ${{ steps.short_sha.outputs.shortsha }}
@@ -60,7 +60,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.VVU_GITHUB_TOKEN }} # Change token later
+          password: ${{ secrets.CI_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
