@@ -1,6 +1,5 @@
 FROM quay.io/quarkus/ubi9-quarkus-micro-image:2.0
 WORKDIR /work/
-ENV DB_URL=host.docker.internal:5432
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
     && chown 1001:root /work

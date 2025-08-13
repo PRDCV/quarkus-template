@@ -9,10 +9,12 @@ quarkus:
       allow-parameter-constraints-on-parallel-methods: true
   datasource:
     db-kind: postgresql
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:Zaq12wsx}
     jdbc:
-      url: jdbc:postgresql://localhost:5432/application
+      url: jdbc:postgresql://${DB_URL:localhost:5432}/Application
+  live-reload:
+    instrumentation: true
 
   hibernate-orm:
     database:
