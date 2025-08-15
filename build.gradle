@@ -71,6 +71,9 @@ dependencies {
     // Mapstruct
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    // Health check
+    implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'org.eclipse.microprofile.health:microprofile-health-api:4.0.1'
 
     // Lombok dependencies
     compileOnly 'org.projectlombok:lombok'
