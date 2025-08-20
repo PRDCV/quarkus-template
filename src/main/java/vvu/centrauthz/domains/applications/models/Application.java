@@ -1,6 +1,6 @@
 package vvu.centrauthz.domains.applications.models;
 
-
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -29,6 +29,8 @@ public record Application(
         UUID ownerId,
 
         UUID managementGroupId,
+
+        JsonNode attributes, // Nullable JSONB field
 
         Long createdAt,
 
