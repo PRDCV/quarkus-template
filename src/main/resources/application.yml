@@ -19,3 +19,5 @@ quarkus:
       generation: validate
     log:
       sql: false
+  health:
+    enabled: true

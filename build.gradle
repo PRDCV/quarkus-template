@@ -64,6 +64,8 @@ dependencies {
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-rest'
     implementation("io.quarkus:quarkus-config-yaml")
+    implementation('io.quarkus:quarkus-smallrye-health')
+
     // Hibernate ORM with Panache
     implementation 'io.quarkus:quarkus-hibernate-orm-panache'
     // Database driver (choose one based on your database)
