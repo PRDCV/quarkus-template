@@ -45,7 +45,7 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleGenericException() {
         AppError appError = ErrorUtils.createBadRequestError(UUID.randomUUID().toString());
-        var error = new IllegalArgumentException(appError);
+        var error = new RuntimeException(appError);
         try (var response = globalErrorHandler.handleGenericException(error)) {
             assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
             assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
