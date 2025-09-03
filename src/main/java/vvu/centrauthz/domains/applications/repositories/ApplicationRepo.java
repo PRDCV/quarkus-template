@@ -1,31 +1,86 @@
 package vvu.centrauthz.domains.applications.repositories;
 
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.LockModeType;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import vvu.centrauthz.domains.applications.entities.ApplicationEntity;
 import vvu.centrauthz.domains.applications.models.ApplicationFilter;
+import vvu.centrauthz.domains.common.models.SortDirection;
 
 /**
  * Repository for managing ApplicationEntity persistence operations.
  */
+@Slf4j
 @ApplicationScoped
 public class ApplicationRepo implements PanacheRepository<ApplicationEntity> {
 
     private static final String APPLICATION_KEY = "applicationKey";
 
     /**
-     * Query applications matching the specified filter criteria.
+     * Queries applications based on the provided filter criteria.
      *
      * @param filter the search and pagination criteria
+     * @param offset the starting index for pagination
      * @return list of matching application entities
      */
-    public List<ApplicationEntity> query(ApplicationFilter filter) {
-        return List.of();
+    public List<ApplicationEntity> query(ApplicationFilter filter, Integer offset) {
+        Sort sortCriteria = buildSortCriteria(filter);
+        var query = findAll(sortCriteria);
+        query = applyFilters(query, filter);
+        query = applyPagination(query, filter, offset);
+        return query.list();
     }
 
+    /**
+     * Builds the sorting criteria from the filter.
+     */
+    private Sort buildSortCriteria(ApplicationFilter filter) {
+        Sort sort = Sort.by();
+        for (vvu.centrauthz.domains.common.models.Sort customSort : filter.sortOrder()) {
+            Sort.Direction direction = customSort.direction() == SortDirection.DESC
+                    ? Sort.Direction.Descending
+                    : Sort.Direction.Ascending;
+            sort = sort.and(customSort.field(), direction);
+        }
+        return sort;
+    }
+
+    /**
+     * Applies filtering conditions to the query.
+     */
+    private PanacheQuery<ApplicationEntity> applyFilters(PanacheQuery<ApplicationEntity> query,
+                                                         ApplicationFilter filter) {
+        if (filter.name() != null) {
+            query = query.filter("nameFilter", Map.of("name", filter.name()));
+        }
+        if (filter.managementGroupId() != null) {
+            query = query.filter("managementGroupIdFilter",
+                    Map.of("managementGroupId", filter.managementGroupId()));
+        }
+        if (filter.ownerId() != null) {
+            query = query.filter("ownerIdFilter", Map.of("ownerId", filter.ownerId()));
+        }
+        return query;
+    }
+
+    /**
+     * Applies pagination to the query.
+     */
+    private PanacheQuery<ApplicationEntity> applyPagination(PanacheQuery<ApplicationEntity> query,
+                                                            ApplicationFilter filter,
+                                                            Integer offset) {
+        if (filter.pageSize() != null) {
+            var endIndex = offset + filter.pageSize() - 1;
+            query = query.range(offset, endIndex);
+        }
+        return query;
+    }
 
     /**
      * Find an application by its key.

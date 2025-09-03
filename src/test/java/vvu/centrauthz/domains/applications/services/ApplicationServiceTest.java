@@ -1,5 +1,9 @@
 package vvu.centrauthz.domains.applications.services;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.*;
+import java.util.function.Consumer;
 import lombok.Builder;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -9,19 +13,120 @@ import vvu.centrauthz.domains.applications.entities.ApplicationEntityCreator;
 import vvu.centrauthz.domains.applications.mappers.ApplicationMapper;
 import vvu.centrauthz.domains.applications.models.Application;
 import vvu.centrauthz.domains.applications.models.ApplicationCreator;
+import vvu.centrauthz.domains.applications.models.ApplicationFilter;
 import vvu.centrauthz.domains.applications.models.ApplicationPatcher;
 import vvu.centrauthz.domains.applications.repositories.ApplicationRepo;
 import vvu.centrauthz.errors.NotFoundError;
 import vvu.centrauthz.models.Patcher;
 import vvu.centrauthz.utilities.Context;
-
-import java.util.*;
-import java.util.function.Consumer;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import vvu.centrauthz.utilities.PageToken;
 
 class ApplicationServiceTest {
+
+    @Test
+    void list_withNullPageToken_returnsFirstPageWithNoToken() {
+        var context = ApplicationServiceContext.builder().build();
+        var service = context.toService();
+        var filter = ApplicationFilter.builder().pageToken(null).build();
+        var userContext = Context.of(UUID.randomUUID());
+
+        var entities = List.of(
+                ApplicationEntityCreator.create(),
+                ApplicationEntityCreator.create()
+        );
+        var applications = List.of(
+                ApplicationCreator.createApplication(),
+                ApplicationCreator.createApplication()
+        );
+
+        context.setup(ctx -> {
+            Mockito.when(ctx.repo.query(filter, 0)).thenReturn(entities);
+            Mockito.when(ctx.mapper.toDtoList(entities)).thenReturn(applications);
+        });
+
+        var result = service.list(filter, userContext);
+
+        assertNotNull(result);
+        assertEquals(applications, result.data());
+        assertNull(result.next());
+
+        context.verify(ctx -> {
+            Mockito.verify(ctx.repo, Mockito.times(1)).query(filter, 0);
+            Mockito.verify(ctx.mapper, Mockito.times(1)).toDtoList(entities);
+        });
+    }
+
+    @Test
+    void list_withNullPageTokenAndReturnsExactPageSize_returnsPageWithNoToken() {
+        var context = ApplicationServiceContext.builder().build();
+        var service = context.toService();
+        var pageSize = 2;
+        var filter = ApplicationFilter.builder().pageToken(null).pageSize(pageSize).build();
+        var userContext = Context.of(UUID.randomUUID());
+
+        var entities = List.of(
+                ApplicationEntityCreator.create(),
+                ApplicationEntityCreator.create()
+        );
+        var applications = List.of(
+                ApplicationCreator.createApplication(),
+                ApplicationCreator.createApplication()
+        );
+
+        context.setup(ctx -> {
+            Mockito.when(ctx.repo.query(filter, 0)).thenReturn(entities);
+            Mockito.when(ctx.mapper.toDtoList(entities)).thenReturn(applications);
+        });
+
+        var result = service.list(filter, userContext);
+
+        assertNotNull(result);
+        assertEquals(applications, result.data());
+        assertNull(result.next());
+
+        context.verify(ctx -> {
+            Mockito.verify(ctx.repo, Mockito.times(1)).query(filter, 0);
+            Mockito.verify(ctx.mapper, Mockito.times(1)).toDtoList(entities);
+        });
+    }
+
+    @Test
+    void list_withValidPageToken_returnsCorrectPage() {
+        var context = ApplicationServiceContext.builder().build();
+        var service = context.toService();
+        var offset = 1;
+        var resultSize = 1;
+        var pageToken = PageToken.encodePageToken(offset);
+        var filter = ApplicationFilter.builder().pageToken(pageToken).pageSize(resultSize).build();
+        var userContext = Context.of(UUID.randomUUID());
+
+        var entities = List.of(
+                ApplicationEntityCreator.create(),
+                ApplicationEntityCreator.create(),
+                ApplicationEntityCreator.create()
+        );
+        var applications = List.of(
+                ApplicationCreator.createApplication(),
+                ApplicationCreator.createApplication(),
+                ApplicationCreator.createApplication());
+        var peekEntity = List.of(ApplicationEntityCreator.create());
+
+        context.setup(ctx -> {
+            Mockito.when(ctx.repo.query(filter, offset)).thenReturn(entities);
+
+            Mockito.when(ctx.repo.query(Mockito.argThat(f -> f.pageSize() == 1), Mockito.eq(2)))
+                    .thenReturn(peekEntity);
+
+            Mockito.when(ctx.mapper.toDtoList(entities)).thenReturn(applications);
+        });
+
+        var result = service.list(filter, userContext);
+
+        assertNotNull(result);
+        assertEquals(applications, result.data());
+        assertNotNull(result.next());
+    }
+
 
     @Test
     void get_hasEntity_returnDto() {
@@ -45,7 +150,8 @@ class ApplicationServiceTest {
 
         context.verify(ctx -> {
             Mockito.verify(ctx.repo, Mockito.times(1)).findByKey(Mockito.anyString());
-            Mockito.verify(ctx.mapper, Mockito.times(1)).toDto(Mockito.any(ApplicationEntity.class));
+            Mockito.verify(ctx.mapper, Mockito.times(1))
+                    .toDto(Mockito.any(ApplicationEntity.class));
         });
 
     }
@@ -64,7 +170,8 @@ class ApplicationServiceTest {
             Mockito.when(ctx.mapper.toDto(eCaptor.capture())).thenReturn(dto);
         });
 
-        assertThrowsExactly(NotFoundError.class, () -> service.get(entity.getApplicationKey(), Context.of(UUID.randomUUID())));
+        assertThrowsExactly(NotFoundError.class,
+                () -> service.get(entity.getApplicationKey(), Context.of(UUID.randomUUID())));
 
         assertEquals(entity.getApplicationKey(), keyCaptor.getValue());
 
@@ -101,8 +208,10 @@ class ApplicationServiceTest {
         assertEquals(userId, eCaptor.getAllValues().getLast().getCreatedBy());
 
         context.verify(ctx -> {
-            Mockito.verify(ctx.repo, Mockito.times(1)).persist(Mockito.any(ApplicationEntity.class));
-            Mockito.verify(ctx.mapper, Mockito.times(1)).toDto(Mockito.any(ApplicationEntity.class));
+            Mockito.verify(ctx.repo, Mockito.times(1))
+                    .persist(Mockito.any(ApplicationEntity.class));
+            Mockito.verify(ctx.mapper, Mockito.times(1))
+                    .toDto(Mockito.any(ApplicationEntity.class));
             Mockito.verify(ctx.mapper, Mockito.times(1)).toEntity(Mockito.any(Application.class));
         });
     }
@@ -120,8 +229,10 @@ class ApplicationServiceTest {
         var entityCaptor = ArgumentCaptor.forClass(ApplicationEntity.class);
 
         context.setup(ctx -> {
-            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture())).thenReturn(Optional.of(entity));
-            Mockito.doNothing().when(ctx.mapper).updateEntity(dtoCaptor.capture(), entityCaptor.capture());
+            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture()))
+                    .thenReturn(Optional.of(entity));
+            Mockito.doNothing().when(ctx.mapper)
+                    .updateEntity(dtoCaptor.capture(), entityCaptor.capture());
         });
 
         service.update(dto.applicationKey(), dto, force, Context.of(userId));
@@ -133,7 +244,8 @@ class ApplicationServiceTest {
 
         context.verify(ctx -> {
             Mockito.verify(ctx.repo, Mockito.times(1)).findByKeyWithLock(Mockito.anyString());
-            Mockito.verify(ctx.repo, Mockito.times(0)).persist(Mockito.any(ApplicationEntity.class));
+            Mockito.verify(ctx.repo, Mockito.times(0))
+                    .persist(Mockito.any(ApplicationEntity.class));
         });
     }
 
@@ -150,8 +262,10 @@ class ApplicationServiceTest {
         var entityCaptor = ArgumentCaptor.forClass(ApplicationEntity.class);
 
         context.setup(ctx -> {
-            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture())).thenReturn(Optional.empty());
-            Mockito.doNothing().when(ctx.mapper).updateEntity(dtoCaptor.capture(), entityCaptor.capture());
+            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture()))
+                    .thenReturn(Optional.empty());
+            Mockito.doNothing().when(ctx.mapper)
+                    .updateEntity(dtoCaptor.capture(), entityCaptor.capture());
         });
 
         assertThrowsExactly(NotFoundError.class, () -> {
@@ -162,8 +276,10 @@ class ApplicationServiceTest {
 
         context.verify(ctx -> {
             Mockito.verify(ctx.repo, Mockito.times(1)).findByKeyWithLock(Mockito.anyString());
-            Mockito.verify(ctx.repo, Mockito.times(0)).persist(Mockito.any(ApplicationEntity.class));
-            Mockito.verify(ctx.mapper, Mockito.never()).updateEntity(Mockito.any(Application.class), Mockito.any(ApplicationEntity.class));
+            Mockito.verify(ctx.repo, Mockito.times(0))
+                    .persist(Mockito.any(ApplicationEntity.class));
+            Mockito.verify(ctx.mapper, Mockito.never()).updateEntity(Mockito.any(Application.class),
+                    Mockito.any(ApplicationEntity.class));
         });
     }
 
@@ -180,7 +296,8 @@ class ApplicationServiceTest {
         var entityCaptor = ArgumentCaptor.forClass(ApplicationEntity.class);
 
         context.setup(ctx -> {
-            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture())).thenReturn(Optional.empty());
+            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture()))
+                    .thenReturn(Optional.empty());
             Mockito.when(ctx.mapper.toEntity(dtoCaptor.capture())).thenReturn(entity);
             Mockito.doNothing().when(ctx.repo).persist(entityCaptor.capture());
         });
@@ -193,9 +310,11 @@ class ApplicationServiceTest {
 
         context.verify(ctx -> {
             Mockito.verify(ctx.repo, Mockito.times(1)).findByKeyWithLock(Mockito.anyString());
-            Mockito.verify(ctx.repo, Mockito.times(1)).persist(Mockito.any(ApplicationEntity.class));
+            Mockito.verify(ctx.repo, Mockito.times(1))
+                    .persist(Mockito.any(ApplicationEntity.class));
             Mockito.verify(ctx.mapper, Mockito.times(1)).toEntity(Mockito.any(Application.class));
-            Mockito.verify(ctx.mapper, Mockito.never()).updateEntity(Mockito.any(Application.class), Mockito.any(ApplicationEntity.class));
+            Mockito.verify(ctx.mapper, Mockito.never()).updateEntity(Mockito.any(Application.class),
+                    Mockito.any(ApplicationEntity.class));
         });
     }
 
@@ -208,14 +327,15 @@ class ApplicationServiceTest {
         var dto = ApplicationCreator.createApplication();
         var appPatcher = ApplicationCreator.createApplicationPatcher();
         var patcher = Patcher
-            .<ApplicationPatcher>builder()
-            .fields(List.of("name", "description", "ownerId", "managementGroupId"))
-            .data(appPatcher)
-            .build();
+                .<ApplicationPatcher>builder()
+                .fields(List.of("name", "description", "ownerId", "managementGroupId"))
+                .data(appPatcher)
+                .build();
         var keyCaptor = ArgumentCaptor.forClass(String.class);
 
         context.setup(ctx -> {
-            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture())).thenReturn(Optional.of(entity));
+            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture()))
+                    .thenReturn(Optional.of(entity));
         });
 
         service.patch(dto.applicationKey(), patcher, Context.of(userId));
@@ -225,7 +345,7 @@ class ApplicationServiceTest {
         assertEquals(appPatcher.ownerId(), entity.getOwnerId());
         assertEquals(appPatcher.managementGroupId(), entity.getManagementGroupId());
 
-        context.verify( ctx -> {
+        context.verify(ctx -> {
             Mockito.verify(ctx.repo, Mockito.only()).findByKeyWithLock(Mockito.anyString());
         });
 
@@ -240,14 +360,15 @@ class ApplicationServiceTest {
         var dto = ApplicationCreator.createApplication();
         var appPatcher = ApplicationCreator.createApplicationPatcher();
         var patcher = Patcher
-            .<ApplicationPatcher>builder()
-            .fields(List.of("name", "description", "ownerId", "managementGroupId"))
-            .data(appPatcher)
-            .build();
+                .<ApplicationPatcher>builder()
+                .fields(List.of("name", "description", "ownerId", "managementGroupId"))
+                .data(appPatcher)
+                .build();
         var keyCaptor = ArgumentCaptor.forClass(String.class);
 
         context.setup(ctx -> {
-            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture())).thenReturn(Optional.empty());
+            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture()))
+                    .thenReturn(Optional.empty());
         });
 
         assertThrowsExactly(NotFoundError.class, () -> {
@@ -259,7 +380,7 @@ class ApplicationServiceTest {
         assertNotEquals(appPatcher.ownerId(), entity.getOwnerId());
         assertNotEquals(appPatcher.managementGroupId(), entity.getManagementGroupId());
 
-        context.verify( ctx -> {
+        context.verify(ctx -> {
             Mockito.verify(ctx.repo, Mockito.only()).findByKeyWithLock(Mockito.anyString());
         });
 
@@ -276,14 +397,15 @@ class ApplicationServiceTest {
         var eCaptor = ArgumentCaptor.forClass(ApplicationEntity.class);
 
         context.setup(ctx -> {
-            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture())).thenReturn(Optional.of(entity));
+            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture()))
+                    .thenReturn(Optional.of(entity));
             Mockito.doNothing().when(ctx.repo).delete(eCaptor.capture());
         });
 
         service.delete(dto.applicationKey(), Context.of(userId));
         assertSame(entity, eCaptor.getValue());
 
-        context.verify( ctx -> {
+        context.verify(ctx -> {
             Mockito.verify(ctx.repo, Mockito.times(1)).findByKeyWithLock(Mockito.anyString());
             Mockito.verify(ctx.repo, Mockito.times(1)).delete(Mockito.any(ApplicationEntity.class));
         });
@@ -299,7 +421,8 @@ class ApplicationServiceTest {
         var eCaptor = ArgumentCaptor.forClass(ApplicationEntity.class);
 
         context.setup(ctx -> {
-            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture())).thenReturn(Optional.empty());
+            Mockito.when(ctx.repo.findByKeyWithLock(keyCaptor.capture()))
+                    .thenReturn(Optional.empty());
             Mockito.doNothing().when(ctx.repo).delete(eCaptor.capture());
         });
 
@@ -307,7 +430,7 @@ class ApplicationServiceTest {
             service.delete(dto.applicationKey(), Context.of(userId));
         });
 
-        context.verify( ctx -> {
+        context.verify(ctx -> {
             Mockito.verify(ctx.repo, Mockito.only()).findByKeyWithLock(Mockito.anyString());
             Mockito.verify(ctx.repo, Mockito.times(0)).delete(Mockito.any(ApplicationEntity.class));
         });
@@ -315,8 +438,8 @@ class ApplicationServiceTest {
 
     @Builder(toBuilder = true)
     record ApplicationServiceContext(
-        ApplicationRepo repo,
-        ApplicationMapper mapper
+            ApplicationRepo repo,
+            ApplicationMapper mapper
     ) {
 
         public ApplicationServiceContext {
