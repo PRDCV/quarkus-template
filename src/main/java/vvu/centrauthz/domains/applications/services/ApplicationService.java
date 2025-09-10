@@ -3,8 +3,10 @@ package vvu.centrauthz.domains.applications.services;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 import vvu.centrauthz.domains.applications.entities.ApplicationEntity;
 import vvu.centrauthz.domains.applications.mappers.ApplicationMapper;
 import vvu.centrauthz.domains.applications.models.Application;
@@ -12,10 +14,10 @@ import vvu.centrauthz.domains.applications.models.ApplicationFilter;
 import vvu.centrauthz.domains.applications.models.ApplicationPatcher;
 import vvu.centrauthz.domains.applications.repositories.ApplicationRepo;
 import vvu.centrauthz.errors.ErrorUtils;
-import vvu.centrauthz.errors.NotImplementedError;
 import vvu.centrauthz.models.Page;
 import vvu.centrauthz.models.Patcher;
 import vvu.centrauthz.utilities.Context;
+import vvu.centrauthz.utilities.PageToken;
 
 /**
  * Service layer for managing application entities and business logic.
@@ -31,6 +33,7 @@ import vvu.centrauthz.utilities.Context;
  *
  * @since 1.0
  */
+@Slf4j
 @Singleton
 public class ApplicationService {
 
@@ -40,7 +43,7 @@ public class ApplicationService {
     /**
      * Constructs a new ApplicationService with the required dependencies.
      *
-     * @param repo the application repository for data access operations
+     * @param repo   the application repository for data access operations
      * @param mapper the mapper for converting between entities and DTOs
      */
     public ApplicationService(ApplicationRepo repo, ApplicationMapper mapper) {
@@ -51,20 +54,73 @@ public class ApplicationService {
     /**
      * Retrieves a paginated list of applications based on filter criteria.
      *
-     * @param filter the filtering, sorting, and pagination criteria
+     * @param filter  the filtering, sorting, and pagination criteria
      * @param context the execution context containing user information
      * @return a paginated result containing matching applications
-     * @throws NotImplementedError as this feature is not yet implemented
      */
     public Page<Application, String> list(ApplicationFilter filter, Context context) {
-        throw new NotImplementedError("Feature not implemented");
+        var offset = calculateOffset(filter.pageToken());
+
+        List<ApplicationEntity> entities = repo.query(filter, offset);
+
+        String nextPageToken = calculateNextPageToken(filter, entities.size());
+
+        List<Application> applications = mapper.toDtoList(entities);
+
+        return Page.<Application, String>builder()
+                .data(applications)
+                .next(nextPageToken)
+                .build();
+    }
+
+    /**
+     * Calculates the offset based on the page token.
+     */
+    private static Integer calculateOffset(String pageToken) {
+        if (pageToken == null) {
+            return 0;
+        }
+
+        return PageToken.getOffset(pageToken);
+    }
+
+
+    /**
+     * Calculates the next page token based on filter and result size.
+     * Returns null if there are no more pages available.
+     */
+    private String calculateNextPageToken(ApplicationFilter filter, Integer resultSize) {
+        if (resultSize < filter.pageSize()) {
+            return null;
+        }
+
+        var currentOffset = calculateOffset(filter.pageToken());
+        var nextOffset = currentOffset + filter.pageSize();
+
+        if (hasMoreRecords(filter, nextOffset)) {
+            return PageToken.encodePageToken(nextOffset);
+        }
+
+        return null;
+    }
+
+    /**
+     * Checks if there are more records by trying to fetch one record at the next offset.
+     */
+    private boolean hasMoreRecords(ApplicationFilter filter, Integer offset) {
+        var peekFilter = filter.toBuilder()
+                .pageSize(1)
+                .build();
+
+        List<ApplicationEntity> peek = repo.query(peekFilter, offset);
+        return !peek.isEmpty();
     }
 
     /**
      * Retrieves a single application by its unique key.
      *
      * @param applicationKey the unique identifier of the application
-     * @param context the execution context containing user information
+     * @param context        the execution context containing user information
      * @return the application DTO if found
      * @throws RuntimeException if the application is not found
      */
@@ -95,7 +151,7 @@ public class ApplicationService {
      * automatically populated from the execution context.</p>
      *
      * @param application the application data to create
-     * @param context the execution context containing user information
+     * @param context     the execution context containing user information
      * @return the created application DTO with generated fields populated
      */
     @Transactional
@@ -114,9 +170,9 @@ public class ApplicationService {
      * be created instead of throwing an error.</p>
      *
      * @param applicationKey the unique identifier of the application to update
-     * @param application the new application data
-     * @param force whether to create the application if it doesn't exist
-     * @param context the execution context containing user information
+     * @param application    the new application data
+     * @param force          whether to create the application if it doesn't exist
+     * @param context        the execution context containing user information
      * @throws RuntimeException if the application is not found and force is false
      */
     @Transactional
@@ -145,8 +201,8 @@ public class ApplicationService {
      * patcher will be updated, leaving other fields unchanged.</p>
      *
      * @param applicationKey the unique identifier of the application to patch
-     * @param patcher the patcher containing the fields to update
-     * @param context the execution context containing user information
+     * @param patcher        the patcher containing the fields to update
+     * @param context        the execution context containing user information
      * @throws RuntimeException if the application is not found
      */
     @Transactional
@@ -158,7 +214,7 @@ public class ApplicationService {
                     .having("description", d -> e.setDescription(d.description()))
                     .having("ownerId", d -> e.setOwnerId(d.ownerId()))
                     .having("managementGroupId",
-                        d -> e.setManagementGroupId(d.managementGroupId()));
+                            d -> e.setManagementGroupId(d.managementGroupId()));
         });
     }
 
@@ -169,7 +225,7 @@ public class ApplicationService {
      * the database after acquiring an exclusive lock.</p>
      *
      * @param applicationKey the unique identifier of the application to delete
-     * @param context the execution context containing user information
+     * @param context        the execution context containing user information
      * @throws RuntimeException if the application is not found
      */
     @Transactional
