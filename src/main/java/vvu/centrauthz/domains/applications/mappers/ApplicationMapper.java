@@ -60,14 +60,11 @@ public interface ApplicationMapper {
      */
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "toInstant")
     @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "toInstant")
-    @Mapping(target = "applicationKey", ignore = true) // Application key should not be updated
+    @Mapping(target = "applicationKey", ignore = true)
     void updateEntity(Application dto, @MappingTarget ApplicationEntity entity);
 
     /**
      * Converts Instant to epoch milliseconds.
-     *
-     * @param instant the Instant to convert, can be null
-     * @return the epoch milliseconds, or null if the input is null
      */
     @Named("toEpochMilli")
     default Long toEpochMilli(Instant instant) {
@@ -76,12 +73,10 @@ public interface ApplicationMapper {
 
     /**
      * Converts epoch milliseconds to Instant.
-     *
-     * @param epochMilli the epoch milliseconds to convert, can be null
-     * @return the Instant, or null if the input is null
      */
     @Named("toInstant")
     default Instant toInstant(Long epochMilli) {
         return epochMilli != null ? Instant.ofEpochMilli(epochMilli) : null;
     }
+
 }

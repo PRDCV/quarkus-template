@@ -1,5 +1,7 @@
 package vvu.centrauthz.domains.applications.mappers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -7,14 +9,19 @@ import vvu.centrauthz.domains.applications.entities.ApplicationEntity;
 import vvu.centrauthz.domains.applications.entities.ApplicationEntityCreator;
 import vvu.centrauthz.domains.applications.models.Application;
 import vvu.centrauthz.domains.applications.models.ApplicationCreator;
+import vvu.centrauthz.utilities.JsonTools;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 class ApplicationMapperTest {
 
     private final ApplicationMapper mapper = Mappers.getMapper(ApplicationMapper.class);

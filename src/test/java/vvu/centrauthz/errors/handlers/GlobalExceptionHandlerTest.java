@@ -1,5 +1,6 @@
 package vvu.centrauthz.errors.handlers;
 
+import jakarta.resource.spi.IllegalStateException;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import vvu.centrauthz.errors.AppError;
@@ -44,8 +45,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void testHandleGenericException() {
-        AppError appError = ErrorUtils.createBadRequestError(UUID.randomUUID().toString());
-        var error = new IllegalArgumentException(appError);
+        var error = new IllegalStateException("Generic error");
         try (var response = globalErrorHandler.handleGenericException(error)) {
             assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
             assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());

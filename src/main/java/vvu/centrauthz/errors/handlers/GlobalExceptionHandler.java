@@ -108,7 +108,7 @@ public class GlobalExceptionHandler {
      */
     @ServerExceptionMapper
     public RestResponse<Error> handleGenericException(Exception ex) {
-        log.info(ExceptionUtil.generateStackTrace(ex));
+        log.error(ExceptionUtil.generateStackTrace(ex));
         var error = Error
                 .builder()
                 .code(Response.Status.INTERNAL_SERVER_ERROR.name())

@@ -1,5 +1,6 @@
 package vvu.centrauthz.domains.applications.entities;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,6 +12,8 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import vvu.centrauthz.domains.common.entities.AuditEntity;
 
 /**
@@ -41,8 +44,13 @@ public class ApplicationEntity extends AuditEntity {
     @NotNull(message = "Owner ID cannot be null")
     private UUID ownerId;
 
+
     @Column(name = "management_group_id", columnDefinition = "UUID")
     private UUID managementGroupId;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "attributes", columnDefinition = "jsonb")
+    private JsonNode attributes;
 
     public ApplicationEntity() {
         super();

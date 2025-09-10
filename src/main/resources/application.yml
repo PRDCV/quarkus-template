@@ -12,10 +12,12 @@ quarkus:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     jdbc:
-      url: jdbc:postgresql://localhost:5432/application
+      url: jdbc:postgresql://localhost:5432/Application
 
   hibernate-orm:
     database:
       generation: validate
     log:
       sql: false
+  health:
+    enabled: true

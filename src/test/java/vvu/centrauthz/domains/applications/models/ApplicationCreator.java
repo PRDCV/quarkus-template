@@ -1,5 +1,6 @@
 package vvu.centrauthz.domains.applications.models;
 
+import vvu.centrauthz.domains.common.models.Sort;
 import vvu.centrauthz.models.Page;
 
 import java.util.List;
@@ -39,6 +40,17 @@ public class ApplicationCreator {
                 .description(UUID.randomUUID().toString())
                 .managementGroupId(UUID.randomUUID())
                 .ownerId(UUID.randomUUID())
+                .build();
+    }
+
+    public static ApplicationFilter createFilter() {
+        return ApplicationFilter
+                .builder()
+                .managementGroupId(UUID.randomUUID())
+                .pageSize(10)
+                .pageToken(UUID.randomUUID().toString())
+                .sortOrder(List.of(Sort.from("name:asc")))
+                .name(UUID.randomUUID().toString().split("-")[0])
                 .build();
     }
 
