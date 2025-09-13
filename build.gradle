@@ -57,6 +57,8 @@ checkstyleMain {
 }
 
 dependencies {
+    implementation 'io.quarkus:quarkus-qute'
+    implementation 'io.quarkus:quarkus-mailer'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-hibernate-validator'
     implementation 'io.quarkus:quarkus-smallrye-openapi'
