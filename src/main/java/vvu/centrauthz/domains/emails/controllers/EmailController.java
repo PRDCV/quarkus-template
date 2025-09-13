@@ -39,7 +39,7 @@ public class EmailController {
         return Context
             .of(userId)
             .execute(ctx -> {
-                emailService.sendEmail(request, ctx);
+                emailService.send(request, ctx);
                 return Response.accepted().build();
             });
     }

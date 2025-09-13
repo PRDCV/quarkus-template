@@ -3,6 +3,7 @@ package vvu.centrauthz.domains.emails.models;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
+import vvu.centrauthz.utilities.LocaleTools;
 
 import java.util.List;
 import java.util.Map;
@@ -15,12 +16,14 @@ public record EmailRequest(
 
         String lang,
 
+        EmailFormat format,
+
         @NotEmpty
-        List<Receiver> to,
+        List<Recipient> to,
 
-        List<Receiver> cc,
+        List<Recipient> cc,
 
-        List<Receiver> bcc,
+        List<Recipient> bcc,
 
         Map<String, String> attributes
 ) {
@@ -37,5 +40,9 @@ public record EmailRequest(
             lang = "en";
         }
 
+        if (Objects.isNull(format)) {
+            format = EmailFormat.html;
+        }
     }
+
 }
