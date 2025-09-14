@@ -13,13 +13,13 @@ repositories {
 }
 
 sonar {
-    properties {
-        property "sonar.projectKey", "hoangviet1vu_quarkus-template"
-        property "sonar.organization", "prdcv-vu-hoang-viet"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.exclusions", "**/src/test/**"
-        property "sonar.test.exclusions", "**/src/test/**"
-    }
+  properties {
+    property "sonar.projectKey", "prdcv-quarkus-template"
+    property "sonar.organization", "prdcv"
+    property "sonar.host.url", "https://sonarcloud.io"
+    property "sonar.exclusions", "**/src/test/**"
+    property "sonar.test.exclusions", "**/src/test/**"
+  }
 }
 
 // Checkstyle configuration
