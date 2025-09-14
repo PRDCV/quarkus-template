@@ -2,12 +2,10 @@ package vvu.centrauthz.domains.emails.models;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.Builder;
-import vvu.centrauthz.utilities.LocaleTools;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record EmailRequest(
@@ -41,7 +39,7 @@ public record EmailRequest(
         }
 
         if (Objects.isNull(format)) {
-            format = EmailFormat.html;
+            format = EmailFormat.HTML;
         }
     }
 

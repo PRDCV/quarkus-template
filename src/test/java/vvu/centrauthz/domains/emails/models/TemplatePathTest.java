@@ -14,10 +14,11 @@ class TemplatePathTest {
         TemplatePath templatePath = TemplatePath.builder()
                 .path("emails")
                 .name("test")
-                .format(EmailFormat.html)
+                .format(EmailFormat.HTML)
                 .locale(locale)
+                .part(EmailPart.SUBJECT)
                 .build();
-        assertEquals("emails/test_ja.html", templatePath.toTemplatePath());
+        assertEquals("emails/test/subject_ja.txt", templatePath.toTemplatePath());
     }
 
     @Test
@@ -25,8 +26,9 @@ class TemplatePathTest {
         TemplatePath templatePath = TemplatePath.builder()
                 .path("emails")
                 .name("test")
-                .format(EmailFormat.html)
+                .format(EmailFormat.HTML)
+                .part(EmailPart.BODY)
                 .build();
-        assertEquals("emails/test.html", templatePath.toTemplatePath());
+        assertEquals("emails/test/body.html", templatePath.toTemplatePath());
     }
 }

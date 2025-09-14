@@ -34,8 +34,8 @@ public class EmailController {
     @POST
     @Path("/actions/send")
     public Response sendEmail(
-        @Valid @HeaderParam("X-Auth-Request-User-Id") java.util.UUID userId,
-        @Valid EmailRequest request) {
+            @Valid @HeaderParam("X-Auth-Request-User-Id") java.util.UUID userId,
+            @Valid EmailRequest request) {
         return Context
             .of(userId)
             .execute(ctx -> {

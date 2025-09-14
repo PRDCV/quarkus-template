@@ -1,42 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <title>Temporary Password</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="UTF-8"/>
+    <title>Temporary Password</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
 </head>
 <body style="font-family: Arial, sans-serif; line-height:1.5; color:#222; margin:0; padding:24px;">
 <h2 style="margin:0 0 16px;">Temporary Password</h2>
 
-<p>Hello {params.name},</p>
+<p>Hello {name},</p>
 
 <p>We created a temporary password for your account.</p>
 
 <p style="margin:12px 0 4px;">Your temporary password:</p>
 <pre style="background:#f6f6f6; padding:12px; border-radius:8px; display:inline-block; font-size:1.1em; font-weight:bold; margin:0;">
-{params.temporaryPassword}</pre>
+    {temporaryPassword}</pre>
 
-{#if params.resetLink}
+{#if resetLink}
 <p style="margin-top:16px;">
-  To sign in and change your password, click:
-  <br/>
-  <a href="{params.resetLink}" target="_blank" style="word-break:break-all;">{params.resetLink}</a>
+    To sign in and change your password, click:
+    <br/>
+    <a href="{resetLink}" target="_blank" style="word-break:break-all;">{resetLink}</a>
 </p>
 {/if}
 
-{#if params.expiresAt}
-<p><strong>Expiry:</strong> {params.expiresAt}</p>
+{#if expiresAt}
+<p><strong>Expiry:</strong> {expiresAt}</p>
 {/if}
 
 <p style="margin-top:16px;">
-  For security, please change this password immediately after logging in.
+    For security, please change this password immediately after logging in.
 </p>
 
 <p>If you didn’t request this, please ignore this email and consider changing your password.</p>
 
 <p style="margin-top:16px;">
-  Regards,<br/>The Team
-  {#if params.supportEmail}<br/>Contact: {params.supportEmail}{/if}
+    Regards,<br/>The Team
+    {#if supportEmail}<br/>Contact: {supportEmail}{/if}
 </p>
 </body>
 </html>

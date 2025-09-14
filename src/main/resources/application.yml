@@ -1,5 +1,5 @@
 quarkus:
-  default-locale: ja
+  default-locale: en
   locales:
     - en
     - ja

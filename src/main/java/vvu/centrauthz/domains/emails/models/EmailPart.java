@@ -1,6 +1,10 @@
 package vvu.centrauthz.domains.emails.models;
 
 public enum EmailPart {
-   body,
-   subject
+    BODY,
+    SUBJECT;
+
+    public String toPartName() {
+        return name().toLowerCase();
+    }
 }

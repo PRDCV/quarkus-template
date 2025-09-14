@@ -3,18 +3,17 @@ package vvu.centrauthz.domains.emails.models;
 import io.quarkus.runtime.util.StringUtil;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record Recipient(
-    @NotBlank
-    @Email
-    String email,
+        @NotBlank
+        @Email
+        String email,
 
-    String name
+        String name
 ) {
     @Override
     public String toString() {

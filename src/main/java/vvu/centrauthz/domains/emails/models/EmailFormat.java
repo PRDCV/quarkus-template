@@ -1,6 +1,13 @@
 package vvu.centrauthz.domains.emails.models;
 
 public enum EmailFormat {
-    html,
-    text;
+        HTML,
+        TEXT;
+    public String toExtension() {
+        if (this == TEXT) {
+            return "txt";
+        } else {
+            return "html";
+        }
+    }
 }

@@ -1,10 +1,9 @@
 package vvu.centrauthz.utilities;
 
 import io.quarkus.runtime.util.StringUtil;
-import lombok.experimental.UtilityClass;
-
 import java.util.Locale;
 import java.util.Objects;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class LocaleTools {

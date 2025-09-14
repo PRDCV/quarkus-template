@@ -1,12 +1,11 @@
 package vvu.centrauthz.domains.emails.models;
 
 import io.quarkus.runtime.util.StringUtil;
+import java.util.Locale;
+import java.util.Objects;
 import lombok.Builder;
 import vvu.centrauthz.domains.emails.utilities.Values;
 import vvu.centrauthz.utilities.LocaleTools;
-
-import java.util.Locale;
-import java.util.Objects;
 
 @Builder(toBuilder = true)
 public record TemplatePath(
@@ -29,25 +28,43 @@ public record TemplatePath(
             throw new IllegalArgumentException("name is required");
         }
 
-        if (Objects.equals(part, EmailPart.subject)) {
-            format = EmailFormat.text;
+        if (Objects.equals(part, EmailPart.SUBJECT)) {
+            format = EmailFormat.TEXT;
         }
 
         if (Objects.isNull(format)) {
-            format = EmailFormat.html;
+            format = EmailFormat.HTML;
         }
 
     }
 
     public String toTemplatePath() {
+
+        var ext = format.toExtension();
+
         if (Objects.isNull(locale)) {
-            return String.format(Values.DEF_TEMP_NAME_FMT, path, name, part.name(), format.name());
+            return String.format(
+                    Values.DEF_TEMP_NAME_FMT,
+                    path,
+                    name,
+                    part.toPartName(),
+                    ext);
         } else {
-            return String.format(Values.TEMP_NAME_FMT, path, name, part.name(), locale.getLanguage(),format.name());
+            return String.format(
+                    Values.TEMP_NAME_FMT,
+                    path,
+                    name,
+                    part.toPartName(),
+                    locale.getLanguage(),
+                    ext);
         }
     }
 
-    public static TemplatePath from(EmailRequest emailRequest, EmailPart part, String path, boolean ignoreLocale) {
+    public static TemplatePath from(
+            EmailRequest emailRequest,
+            EmailPart part,
+            String path,
+            boolean ignoreLocale) {
         return TemplatePath
                 .builder()
                 .path(path)
@@ -58,11 +75,16 @@ public record TemplatePath(
                 .build();
     }
 
-    public static TemplatePath from(EmailRequest emailRequest, EmailPart part, boolean ignoreLocale) {
+    public static TemplatePath from(
+            EmailRequest emailRequest,
+            EmailPart part,
+            boolean ignoreLocale) {
         return from(emailRequest, part, Values.BASE_PATH, ignoreLocale);
     }
 
-    public static TemplatePath from(EmailRequest emailRequest, EmailPart part) {
+    public static TemplatePath from(
+            EmailRequest emailRequest,
+            EmailPart part) {
         return from(emailRequest, part, Values.BASE_PATH, false);
     }
 }
