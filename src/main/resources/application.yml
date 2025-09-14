@@ -17,11 +17,19 @@ quarkus:
     password: ${DB_PASSWORD}
     jdbc:
       url: jdbc:postgresql://localhost:5432/Application
-
+  mailer:
+    host: ${SMTP_HOST}
+    port: 587
+    start-tls: REQUIRED
+    auth: true
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    from: ${SMTP_FROM}
+    mock: false
   hibernate-orm:
     database:
       generation: validate
     log:
       sql: false
-  health:
+  management:
     enabled: true
