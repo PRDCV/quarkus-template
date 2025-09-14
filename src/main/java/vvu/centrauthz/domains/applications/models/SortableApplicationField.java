@@ -10,9 +10,7 @@ public enum SortableApplicationField {
     APPLICATION_KEY("application_key"),
     NAME("name"),
     CREATED_DATE("created_at"),
-    UPDATED_DATE("updated_at"),
-    OWNER_ID("owner_id"),
-    MANAGEMENT_GROUP_ID("management_group_id");
+    UPDATED_DATE("updated_at");
 
     private final String value;
 
@@ -26,13 +24,12 @@ public enum SortableApplicationField {
             case "name" -> NAME;
             case "createdDate" -> CREATED_DATE;
             case "updatedDate" -> UPDATED_DATE;
-            case "ownerId" -> OWNER_ID;
-            case "managementGroupId" -> MANAGEMENT_GROUP_ID;
             default ->
                     throw new InvalidSortFieldError(String.format("Invalid sort field: %s", value));
         };
     }
 
+    @Override
     public String toString() {
         return value;
     }

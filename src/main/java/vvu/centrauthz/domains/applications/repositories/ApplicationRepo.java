@@ -3,7 +3,6 @@ package vvu.centrauthz.domains.applications.repositories;
 import com.speedment.jpastreamer.application.JPAStreamer;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.LockModeType;
 import java.util.Comparator;
 import java.util.List;
@@ -26,8 +25,11 @@ public class ApplicationRepo implements PanacheRepository<ApplicationEntity> {
 
     private static final String APPLICATION_KEY = "applicationKey";
 
-    @Inject
     JPAStreamer jpaStreamer;
+
+    public ApplicationRepo(JPAStreamer jpaStreamer) {
+        this.jpaStreamer = jpaStreamer;
+    }
 
     /**
      * Queries applications based on the provided filter criteria.
@@ -78,8 +80,6 @@ public class ApplicationRepo implements PanacheRepository<ApplicationEntity> {
             case NAME -> ApplicationEntity$.name;
             case CREATED_DATE -> ApplicationEntity$.createdBy;
             case UPDATED_DATE -> ApplicationEntity$.updatedAt;
-            case OWNER_ID -> ApplicationEntity$.ownerId;
-            case MANAGEMENT_GROUP_ID -> ApplicationEntity$.managementGroupId;
         };
 
         return direction == SortDirection.ASC ? baseComparator.comparator() :

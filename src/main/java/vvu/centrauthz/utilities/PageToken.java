@@ -1,14 +1,17 @@
 package vvu.centrauthz.utilities;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import vvu.centrauthz.errors.BadRequestError;
+import vvu.centrauthz.errors.PageTokenEncodingError;
 
 public class PageToken {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private PageToken() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Encodes pagination parameters into a Base64 page token.
@@ -19,13 +22,14 @@ public class PageToken {
      */
     public static String encodePageToken(Integer offset) {
         try {
+            var objectMapper = JsonTools.mapper();
             ObjectNode tokenData = objectMapper.createObjectNode();
             tokenData.put("offset", offset);
 
             String jsonString = objectMapper.writeValueAsString(tokenData);
             return Base64.getEncoder().encodeToString(jsonString.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
-            throw new RuntimeException("Failed to encode page token", e);
+            throw new PageTokenEncodingError("Failed to encode page token");
         }
     }
 
@@ -40,7 +44,7 @@ public class PageToken {
         try {
             byte[] decodedBytes = Base64.getDecoder().decode(pageToken);
             String jsonString = new String(decodedBytes, StandardCharsets.UTF_8);
-            return objectMapper.readTree(jsonString);
+            return JsonTools.mapper().readTree(jsonString);
         } catch (Exception e) {
             throw new BadRequestError("Failed to decode page token");
         }
@@ -54,7 +58,8 @@ public class PageToken {
      */
     public static Integer getOffset(String pageToken) {
         JsonNode tokenData = decodePageToken(pageToken);
-        return tokenData.get("offset").asInt(0);
+        JsonNode offsetNode = tokenData.get("offset");
+        return offsetNode != null ? offsetNode.asInt(0) : 0;
     }
 
     /**

@@ -14,7 +14,7 @@ public class InvalidSortFieldError extends AppError {
         super("INVALID_SORT_FIELD", message);
     }
 
-    public InvalidSortFieldError(Throwable e) {
-        super("INVALID_SORT_FIELD", e);
+    public InvalidSortFieldError() {
+        super("INVALID_SORT_FIELD");
     }
 }
