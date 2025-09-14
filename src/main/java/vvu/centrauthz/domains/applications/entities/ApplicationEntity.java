@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import vvu.centrauthz.domains.common.entities.AuditEntity;
 
@@ -24,22 +24,6 @@ import vvu.centrauthz.domains.common.entities.AuditEntity;
 @Setter
 @Getter
 @Entity
-@FilterDefs({
-        @FilterDef(name = "nameFilter",
-                parameters = @ParamDef(name = "name", type = String.class)),
-        @FilterDef(name = "ownerIdFilter",
-                parameters = @ParamDef(name = "ownerId", type = UUID.class)),
-        @FilterDef(name = "managementGroupIdFilter",
-                parameters = @ParamDef(name = "managementGroupId", type = UUID.class))
-})
-@Filters({
-        @Filter(name = "nameFilter",
-                condition = "name = :name"),
-        @Filter(name = "ownerIdFilter",
-                condition = "owner_id = :ownerId"),
-        @Filter(name = "managementGroupIdFilter",
-                condition = "management_group_id = :managementGroupId")
-})
 @Table(name = "application")
 public class ApplicationEntity extends AuditEntity {
 

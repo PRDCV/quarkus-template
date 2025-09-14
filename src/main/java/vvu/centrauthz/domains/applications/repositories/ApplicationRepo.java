@@ -1,16 +1,20 @@
 package vvu.centrauthz.domains.applications.repositories;
 
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import com.speedment.jpastreamer.application.JPAStreamer;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
-import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.LockModeType;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import vvu.centrauthz.domains.applications.entities.ApplicationEntity;
+import vvu.centrauthz.domains.applications.entities.ApplicationEntity$;
 import vvu.centrauthz.domains.applications.models.ApplicationFilter;
+import vvu.centrauthz.domains.applications.models.SortableApplicationField;
 import vvu.centrauthz.domains.common.models.SortDirection;
 
 /**
@@ -22,6 +26,9 @@ public class ApplicationRepo implements PanacheRepository<ApplicationEntity> {
 
     private static final String APPLICATION_KEY = "applicationKey";
 
+    @Inject
+    JPAStreamer jpaStreamer;
+
     /**
      * Queries applications based on the provided filter criteria.
      *
@@ -30,56 +37,75 @@ public class ApplicationRepo implements PanacheRepository<ApplicationEntity> {
      * @return list of matching application entities
      */
     public List<ApplicationEntity> query(ApplicationFilter filter, Integer offset) {
-        Sort sortCriteria = buildSortCriteria(filter);
-        var query = findAll(sortCriteria);
-        query = applyFilters(query, filter);
-        query = applyPagination(query, filter, offset);
-        return query.list();
+        var stream = jpaStreamer.stream(ApplicationEntity.class);
+        stream = applyFilters(stream, filter);
+
+        return stream.sorted(buildSort(filter))
+                .skip(offset)
+                .limit(filter.pageSize())
+                .toList();
     }
 
     /**
-     * Builds the sorting criteria from the filter.
+     * Builds a comparator for sorting applications based on filter criteria.
+     * Returns default sort (newest first) if no sort order specified.
      */
-    private Sort buildSortCriteria(ApplicationFilter filter) {
-        Sort sort = Sort.by();
-        for (vvu.centrauthz.domains.common.models.Sort customSort : filter.sortOrder()) {
-            Sort.Direction direction = customSort.direction() == SortDirection.DESC
-                    ? Sort.Direction.Descending
-                    : Sort.Direction.Ascending;
-            sort = sort.and(customSort.field(), direction);
+    private Comparator<ApplicationEntity> buildSort(ApplicationFilter filter) {
+        if (filter.sortOrder() == null || filter.sortOrder().isEmpty()) {
+            return ApplicationEntity$.createdAt.reversed(); // Default sort
         }
-        return sort;
+
+        Comparator<ApplicationEntity> comparator = null;
+
+        for (var customSort : filter.sortOrder()) {
+            var sortField = SortableApplicationField.from(customSort.field());
+            var fieldComparator = getFieldComparator(sortField, customSort.direction());
+
+            comparator = (comparator == null) ? fieldComparator :
+                    comparator.thenComparing(fieldComparator);
+        }
+
+        return comparator;
+    }
+
+    /**
+     * Creates a comparator for a specific field and direction.
+     */
+    private Comparator<ApplicationEntity> getFieldComparator(SortableApplicationField field,
+                                                             SortDirection direction) {
+        var baseComparator = switch (field) {
+            case APPLICATION_KEY -> ApplicationEntity$.applicationKey;
+            case NAME -> ApplicationEntity$.name;
+            case CREATED_DATE -> ApplicationEntity$.createdBy;
+            case UPDATED_DATE -> ApplicationEntity$.updatedAt;
+            case OWNER_ID -> ApplicationEntity$.ownerId;
+            case MANAGEMENT_GROUP_ID -> ApplicationEntity$.managementGroupId;
+        };
+
+        return direction == SortDirection.ASC ? baseComparator.comparator() :
+                baseComparator.reversed();
     }
 
     /**
      * Applies filtering conditions to the query.
      */
-    private PanacheQuery<ApplicationEntity> applyFilters(PanacheQuery<ApplicationEntity> query,
-                                                         ApplicationFilter filter) {
+    private Stream<ApplicationEntity> applyFilters(Stream<ApplicationEntity> stream,
+                                                   ApplicationFilter filter) {
         if (filter.name() != null) {
-            query = query.filter("nameFilter", Map.of("name", filter.name()));
+            stream = stream.filter(applicationEntity -> Objects.equals(applicationEntity.getName(),
+                    filter.name()));
         }
         if (filter.managementGroupId() != null) {
-            query = query.filter("managementGroupIdFilter",
-                    Map.of("managementGroupId", filter.managementGroupId()));
+            stream = stream.filter(
+                    applicationEntity -> Objects.equals(applicationEntity.getManagementGroupId(),
+                            filter.managementGroupId()));
         }
         if (filter.ownerId() != null) {
-            query = query.filter("ownerIdFilter", Map.of("ownerId", filter.ownerId()));
+            stream = stream.filter(
+                    applicationEntity -> Objects.equals(applicationEntity.getOwnerId(),
+                            filter.ownerId()));
         }
-        return query;
-    }
-
-    /**
-     * Applies pagination to the query.
-     */
-    private PanacheQuery<ApplicationEntity> applyPagination(PanacheQuery<ApplicationEntity> query,
-                                                            ApplicationFilter filter,
-                                                            Integer offset) {
-        if (filter.pageSize() != null) {
-            var endIndex = offset + filter.pageSize() - 1;
-            query = query.range(offset, endIndex);
-        }
-        return query;
+        return stream;
     }
 
     /**

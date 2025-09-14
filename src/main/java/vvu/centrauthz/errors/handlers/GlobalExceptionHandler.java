@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
             case BadRequestError ignored -> Response.Status.BAD_REQUEST;
             case ConflictError ignored -> Response.Status.CONFLICT;
             case NotFoundError ignored -> Response.Status.NOT_FOUND;
+            case InvalidSortFieldError ignored -> Response.Status.BAD_REQUEST;
             case NotImplementedError ignored -> Response.Status.NOT_IMPLEMENTED;
             default -> Response.Status.INTERNAL_SERVER_ERROR;
         };
@@ -72,9 +73,9 @@ public class GlobalExceptionHandler {
         Set<ConstraintViolation<?>> violations = ex.getConstraintViolations();
         Map<String, String> details = violations.stream()
                 .collect(Collectors.toMap(
-                    violation -> violation.getPropertyPath().toString(),
-                    ConstraintViolation::getMessage,
-                    (existing, replacement) -> existing + "; " + replacement
+                        violation -> violation.getPropertyPath().toString(),
+                        ConstraintViolation::getMessage,
+                        (existing, replacement) -> existing + "; " + replacement
                 ));
 
         Error error = Error.builder()
@@ -91,7 +92,7 @@ public class GlobalExceptionHandler {
     @ServerExceptionMapper
     public RestResponse<Error> handleAppError(AppError ex) {
         return RestResponse
-            .status(toStatus(ex), ex.getError());
+                .status(toStatus(ex), ex.getError());
     }
 
     /**
@@ -115,7 +116,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
         return RestResponse
-            .status(Response.Status.INTERNAL_SERVER_ERROR, error);
+                .status(Response.Status.INTERNAL_SERVER_ERROR, error);
     }
 
     private RestResponse<Error> processPersistenceException(RuntimeException e) {
@@ -129,7 +130,7 @@ public class GlobalExceptionHandler {
                         .message(ex.getMessage())
                         .build();
                 return RestResponse
-                    .status(Response.Status.CONFLICT, error);
+                        .status(Response.Status.CONFLICT, error);
             } else {
                 ex = ex.getCause();
             }
