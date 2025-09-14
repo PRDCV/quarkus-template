@@ -14,6 +14,7 @@ import vvu.centrauthz.domains.common.models.Sort;
 import vvu.centrauthz.errors.ErrorUtils;
 import vvu.centrauthz.models.Patcher;
 import vvu.centrauthz.utilities.Context;
+import vvu.centrauthz.utilities.PageToken;
 
 /**
  * REST Controller for Application management.
@@ -40,7 +41,7 @@ public class ApplicationController {
      * Create a new application.
      * POST /v0/applications
      *
-     * @param userId the ID of the user making the request
+     * @param userId      the ID of the user making the request
      * @param application the application data to be created
      * @return HTTP 201 Created
      */
@@ -61,13 +62,13 @@ public class ApplicationController {
      * List applications with optional filtering parameters.
      * GET /v0/applications
      *
-     * @param userId the ID of the user making the request
-     * @param pageSize the number of applications to return per page
-     * @param pageToken the token for the next page of results
-     * @param ownerId filter applications by the owner's UUID
+     * @param userId            the ID of the user making the request
+     * @param pageSize          the number of applications to return per page
+     * @param pageToken         the token for the next page of results
+     * @param ownerId           filter applications by the owner's UUID
      * @param managementGroupId filter applications by the management group's UUID
-     * @param name filter applications by application name
-     * @param sortOrder sort direction
+     * @param name              filter applications by application name
+     * @param sortOrder         sort direction
      * @return HTTP 200 OK with a list of applications
      */
     @GET
@@ -79,6 +80,8 @@ public class ApplicationController {
             @QueryParam("managementGroupId") UUID managementGroupId,
             @QueryParam("name") String name,
             @QueryParam("sort") String sortOrder) {
+
+        PageToken.validatePageToken(pageToken);
 
         var builder = ApplicationFilter
                 .builder()
@@ -106,7 +109,7 @@ public class ApplicationController {
      * Retrieve an application by its key.
      * GET /v0/applications/{applicationKey}
      *
-     * @param userId the ID of the user making the request
+     * @param userId         the ID of the user making the request
      * @param applicationKey the unique key of the application
      * @return HTTP 200 OK with the application data
      */
@@ -128,9 +131,9 @@ public class ApplicationController {
      * Update an application by key.
      * PUT /v0/applications/{applicationKey}
      *
-     * @param userId the ID of the user making the request
+     * @param userId         the ID of the user making the request
      * @param applicationKey the unique key of the application
-     * @param application the new application data
+     * @param application    the new application data
      * @return HTTP 200 OK
      */
     @PUT
@@ -159,9 +162,9 @@ public class ApplicationController {
      * Update an application by key.
      * PATCH /v0/applications/{applicationKey}
      *
-     * @param userId the ID of the user making the request
+     * @param userId         the ID of the user making the request
      * @param applicationKey the unique key of the application
-     * @param patcher the set of fields and values to update
+     * @param patcher        the set of fields and values to update
      * @return HTTP 204 OK
      */
     @PATCH
@@ -185,7 +188,7 @@ public class ApplicationController {
      * Delete an application by key.
      * DELETE /v0/applications/{applicationKey}
      *
-     * @param userId the ID of the user making the request
+     * @param userId         the ID of the user making the request
      * @param applicationKey the unique key of the application
      * @return HTTP 200 OK
      */

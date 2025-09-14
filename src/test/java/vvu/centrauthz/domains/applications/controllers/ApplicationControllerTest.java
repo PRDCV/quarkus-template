@@ -1,6 +1,11 @@
 package vvu.centrauthz.domains.applications.controllers;
 
 import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
+import java.util.function.Consumer;
 import lombok.Builder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -16,12 +21,6 @@ import vvu.centrauthz.domains.applications.services.ApplicationService;
 import vvu.centrauthz.errors.BadRequestError;
 import vvu.centrauthz.models.Patcher;
 import vvu.centrauthz.utilities.Context;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
-import java.util.UUID;
-import java.util.function.Consumer;
 
 class ApplicationControllerTest {
 
@@ -47,7 +46,8 @@ class ApplicationControllerTest {
         var controller = appContext.toController();
 
         appContext.setup(service -> {
-            Mockito.when(service.create(appCaptor.capture(), contextCaptor.capture())).thenReturn(appRet);
+            Mockito.when(service.create(appCaptor.capture(), contextCaptor.capture()))
+                    .thenReturn(appRet);
         });
 
         try (var response = controller.createApplication(userId, app)) {
@@ -55,7 +55,8 @@ class ApplicationControllerTest {
             Assertions.assertSame(appRet, response.getEntity());
 
             appContext.verify(service -> {
-                Mockito.verify(service, Mockito.only()).create(Mockito.any(Application.class), Mockito.any(Context.class));
+                Mockito.verify(service, Mockito.only())
+                        .create(Mockito.any(Application.class), Mockito.any(Context.class));
                 Assertions.assertEquals(userId, contextCaptor.getValue().user().userId());
                 Assertions.assertSame(app, appCaptor.getValue());
             });
@@ -73,14 +74,15 @@ class ApplicationControllerTest {
         var appContext = ApplicationControllerContext.builder().build();
         var controller = appContext.toController();
         var pageSize = 20;
-        var pageToken = UUID.randomUUID().toString();
+        String pageToken = null;
         var ownerId = UUID.randomUUID();
         var managementGroupId = UUID.randomUUID();
         var name = UUID.randomUUID().toString().split("-")[0];
         var sortOrder = "name:asc,ownerId:desc";
 
         appContext.setup(service -> {
-            Mockito.when(service.list(filterCaptor.capture(), contextCaptor.capture())).thenReturn(page);
+            Mockito.when(service.list(filterCaptor.capture(), contextCaptor.capture()))
+                    .thenReturn(page);
         });
 
         try (var response = controller
@@ -90,7 +92,7 @@ class ApplicationControllerTest {
                         pageToken,
                         ownerId,
                         managementGroupId,
-                    name, sortOrder)) {
+                        name, sortOrder)) {
             Assertions.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             Assertions.assertSame(page, response.getEntity());
 
@@ -124,7 +126,8 @@ class ApplicationControllerTest {
         var controller = appContext.toController();
 
         appContext.setup(service -> {
-            Mockito.when(service.get(appKeyCaptor.capture(), contextCaptor.capture())).thenReturn(appRet);
+            Mockito.when(service.get(appKeyCaptor.capture(), contextCaptor.capture()))
+                    .thenReturn(appRet);
         });
 
         try (var response = controller.getApplication(userId, app.applicationKey())) {
@@ -132,7 +135,8 @@ class ApplicationControllerTest {
             Assertions.assertSame(appRet, response.getEntity());
 
             appContext.verify(service -> {
-                Mockito.verify(service, Mockito.only()).get(Mockito.anyString(), Mockito.any(Context.class));
+                Mockito.verify(service, Mockito.only())
+                        .get(Mockito.anyString(), Mockito.any(Context.class));
                 Assertions.assertEquals(userId, contextCaptor.getValue().user().userId());
                 Assertions.assertSame(app.applicationKey(), appKeyCaptor.getValue());
             });
@@ -154,17 +158,21 @@ class ApplicationControllerTest {
         var controller = appContext.toController();
 
         appContext.setup(service -> {
-            Mockito.doNothing().when(service).update(appKeyCaptor.capture(), appCaptor.capture(), forceCaptor.capture(), contextCaptor.capture());
+            Mockito.doNothing().when(service)
+                    .update(appKeyCaptor.capture(), appCaptor.capture(), forceCaptor.capture(),
+                            contextCaptor.capture());
         });
 
 
-
-        try (var response = controller.updateApplication(userId, app.applicationKey(), force, app)) {
-            Assertions.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        try (var response = controller.updateApplication(userId, app.applicationKey(), force,
+                app)) {
+            Assertions.assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+                    response.getStatus());
             Assertions.assertEquals(force, forceCaptor.getValue());
             appContext.verify(service -> {
                 Mockito.verify(service, Mockito.only())
-                    .update(Mockito.anyString(), Mockito.any(Application.class), Mockito.any(Boolean.class), Mockito.any(Context.class));
+                        .update(Mockito.anyString(), Mockito.any(Application.class),
+                                Mockito.any(Boolean.class), Mockito.any(Context.class));
                 Assertions.assertEquals(userId, contextCaptor.getValue().user().userId());
                 Assertions.assertSame(app.applicationKey(), appKeyCaptor.getValue());
             });
@@ -188,22 +196,23 @@ class ApplicationControllerTest {
 
         appContext.setup(service -> {
             Mockito
-                .doNothing()
-                .when(service)
-                .update(appKeyCaptor.capture(), appCaptor.capture(), forceCaptor.capture(), contextCaptor.capture());
+                    .doNothing()
+                    .when(service)
+                    .update(appKeyCaptor.capture(), appCaptor.capture(), forceCaptor.capture(),
+                            contextCaptor.capture());
         });
 
 
         Assertions.assertThrows(
                 BadRequestError.class,
-            () -> controller.updateApplication(userId, appKey, force, app));
+                () -> controller.updateApplication(userId, appKey, force, app));
 
         appContext.verify(service -> {
             Mockito.verify(service,
-                Mockito.never()).update(Mockito.anyString(),
-                Mockito.any(Application.class),
-                Mockito.any(Boolean.class),
-                Mockito.any(Context.class));
+                    Mockito.never()).update(Mockito.anyString(),
+                    Mockito.any(Application.class),
+                    Mockito.any(Boolean.class),
+                    Mockito.any(Context.class));
         });
     }
 
@@ -220,19 +229,24 @@ class ApplicationControllerTest {
 
         var contextCaptor = ArgumentCaptor.forClass(Context.class);
         var appKeyCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Patcher<ApplicationPatcher>> patcherCaptor = ArgumentCaptor.forClass(Patcher.class);
+        ArgumentCaptor<Patcher<ApplicationPatcher>> patcherCaptor =
+                ArgumentCaptor.forClass(Patcher.class);
 
         var appContext = ApplicationControllerContext.builder().build();
         var controller = appContext.toController();
 
         appContext.setup(service -> {
-            Mockito.doNothing().when(service).patch(appKeyCaptor.capture(), patcherCaptor.capture(), contextCaptor.capture());
+            Mockito.doNothing().when(service).patch(appKeyCaptor.capture(), patcherCaptor.capture(),
+                    contextCaptor.capture());
         });
 
         try (var response = controller.patchApplication(userId, key, patcher)) {
-            Assertions.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+            Assertions.assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+                    response.getStatus());
             appContext.verify(service -> {
-                Mockito.verify(service, Mockito.only()).patch(Mockito.anyString(), Mockito.any(Patcher.class), Mockito.any(Context.class));
+                Mockito.verify(service, Mockito.only())
+                        .patch(Mockito.anyString(), Mockito.any(Patcher.class),
+                                Mockito.any(Context.class));
                 Assertions.assertEquals(userId, contextCaptor.getValue().user().userId());
                 Assertions.assertSame(key, appKeyCaptor.getValue());
                 Assertions.assertSame(patcher, patcherCaptor.getValue());
@@ -254,13 +268,16 @@ class ApplicationControllerTest {
         var controller = appContext.toController();
 
         appContext.setup(service -> {
-            Mockito.doNothing().when(service).delete(appKeyCaptor.capture(), contextCaptor.capture());
+            Mockito.doNothing().when(service)
+                    .delete(appKeyCaptor.capture(), contextCaptor.capture());
         });
 
         try (var response = controller.deleteApplication(userId, app.applicationKey())) {
-            Assertions.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+            Assertions.assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+                    response.getStatus());
             appContext.verify(service -> {
-                Mockito.verify(service, Mockito.only()).delete(Mockito.anyString(), Mockito.any(Context.class));
+                Mockito.verify(service, Mockito.only())
+                        .delete(Mockito.anyString(), Mockito.any(Context.class));
                 Assertions.assertEquals(userId, contextCaptor.getValue().user().userId());
                 Assertions.assertSame(app.applicationKey(), appKeyCaptor.getValue());
             });
