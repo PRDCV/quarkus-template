@@ -2,10 +2,10 @@
 FROM flyway/flyway:11.11.0
 
 # Copy your SQL migration files to the default location
-COPY db/migration/ /flyway/sql/
+COPY flyway/sql/ /flyway/sql/
 
 # Optional: Copy Flyway configuration file
-COPY db/flyway.conf /flyway/conf/
+COPY flyway/flyway.conf /flyway/conf/
 
 # Set working directory
 WORKDIR /flyway

@@ -49,6 +49,15 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,enable=true,priority=100,prefix=${{ env.PREFIX }}-,suffix=,format=short
+      - name: Docker flyway meta
+        id: flywaymeta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-initdb
+          tags: |
+            type=sha,enable=true,priority=100,prefix=${{ env.PREFIX }}-,suffix=,format=short
+      - run : echo "SHA "${{ steps.short_sha.outputs.shortsha }}
       - run : echo "SHA "${{ steps.short_sha.outputs.shortsha }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -66,3 +75,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./
+          file: src/main/docker/Dockerfile.flyway
+          push: true
+          tags: ${{ steps.flywaymeta.outputs.tags }}
+          labels: ${{ steps.flywaymeta.outputs.labels }}
